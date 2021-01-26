@@ -6,6 +6,6 @@ export default function App() {
   const [user, setUser] = useState({name:"Luis"});
 
   return(
-    <div>{user ? (<SignInSingUp/>):(<h1>No Estas Loguado</h1>)}</div>
+    <div>{user ? (<SignInSingUp/>):(<h1>No Estas Logueado</h1>)}</div>
   );
 }
