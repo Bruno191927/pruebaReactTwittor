@@ -1,13 +1,58 @@
 import React,{useState} from 'react';
-import { Row,Col,Form,Button} from "react-bootstrap";
+import { Row,Col,Form,Button, Spinner} from "react-bootstrap";
+import { values,size } from "lodash";
+import { toast } from "react-toastify";
+import { isEmailValid } from "../../utils/validations";
+import { signUpApi } from "../../api/auth";
+
 import "./SignUpForm.scss";
 export default function SignUpForm(props) {
     const {setShowModal} = props;
     const [formData, setFormData] = useState(initialFormValue());
+    const [signUpLoading, setSignUpLoading] = useState(false);
+    
     const onSubmit= e =>{
         e.preventDefault();
-        setShowModal(false);
+        
         console.log(formData);
+
+        let validCount = 0;
+
+        values(formData).some(value=>{
+            value && validCount++;
+            return null;
+        });
+
+        if(validCount !== size(formData)){
+            toast.warning("Por favor completar todos los campos");
+        }
+        else{
+            if(!isEmailValid(formData.email)){
+                toast.warning("Email invalido");
+            }
+            else if(formData.password !== formData.repeatPassword){
+                toast.warning("La contraseña no es igual");
+            }
+            else if(size(formData.password) < 6){
+                toast.warning("La contraseña tiene que tener al menos 6 caracteres")
+            }
+            else{
+                setSignUpLoading(true);
+                signUpApi(formData).then(response =>{
+                    if(response.code){
+                        toast.warning(response.message);
+                    }else{
+                        toast.success("Registro completo");
+                        setShowModal(false);
+                        setFormData(initialFormValue);
+                    }
+                }).catch(()=>{
+                    toast.error("Error del servidor intentar mas tarde");
+                }).finally(()=>{
+                    setSignUpLoading(false);
+                });
+            }
+        }
     }
 
     const onChange = e =>{
@@ -68,7 +113,7 @@ export default function SignUpForm(props) {
                     </Row>
                 </Form.Group>
                 <Button variant="primary" type="submit">
-                    Regístrate
+                    {!signUpLoading ? "Registrate" : <Spinner animation="border"/>}
                 </Button>
 
             </Form>
